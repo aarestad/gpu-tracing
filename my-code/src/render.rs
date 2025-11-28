@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use bytemuck::{Pod, Zeroable};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPipeline};
 
@@ -19,7 +20,7 @@ pub struct PathTracer {
 
 impl PathTracer {
     pub fn new(device: Device, queue: Queue, width: u32, height: u32) -> Self {
-        device.on_uncaptured_error(Box::from(|error| {
+        device.on_uncaptured_error(Arc::from(|error| {
             panic!("Aborting due to an error: {}", error);
         }));
 
