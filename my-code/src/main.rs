@@ -13,7 +13,7 @@ use {
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 
-async fn connect_to_gpu(window: &Window) -> Result<(Device, Queue, Surface<'_>)> {
+async fn connect_to_gpu<'w>(window: &'w Window) -> Result<(Device, Queue, Surface<'w>)> {
     use wgpu::TextureFormat::{Bgra8Unorm, Rgba8Unorm};
 
     // Create an "instance" of wgpu. This is the entry-point to the API.
@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
         .build(&event_loop)?;
 
     let (device, queue, surface) = connect_to_gpu(&window).await?;
-    let renderer = render::PathTracer::new(device, queue);
+    let renderer = render::PathTracer::new(device, queue, WIDTH, HEIGHT);
 
     // TODO: initialize renderer
 
