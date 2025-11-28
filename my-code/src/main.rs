@@ -1,5 +1,8 @@
+mod render;
+
 use {
     anyhow::{Context, Result},
+    wgpu::{Device, Queue, Surface},
     winit::{
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
@@ -10,7 +13,7 @@ use {
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 
-async fn connect_to_gpu(window: &Window) -> Result<(wgpu::Device, wgpu::Queue, wgpu::Surface<'_>)> {
+async fn connect_to_gpu(window: &Window) -> Result<(Device, Queue, Surface<'_>)> {
     use wgpu::TextureFormat::{Bgra8Unorm, Rgba8Unorm};
 
     // Create an "instance" of wgpu. This is the entry-point to the API.
@@ -66,12 +69,15 @@ async fn connect_to_gpu(window: &Window) -> Result<(wgpu::Device, wgpu::Queue, w
 async fn main() -> Result<()> {
     let event_loop = EventLoop::new()?;
     let window_size = winit::dpi::PhysicalSize::new(WIDTH, HEIGHT);
+
     let window = WindowBuilder::new()
         .with_inner_size(window_size)
         .with_resizable(false)
         .with_title("GPU Path Tracer".to_string())
         .build(&event_loop)?;
-    let (_device, _queue, surface) = connect_to_gpu(&window).await?;
+
+    let (device, queue, surface) = connect_to_gpu(&window).await?;
+    let renderer = render::PathTracer::new(device, queue);
 
     // TODO: initialize renderer
 
@@ -86,7 +92,11 @@ async fn main() -> Result<()> {
                         .get_current_texture()
                         .expect("failed to get current texture");
 
-                    // TODO: draw frame
+                    let render_target = frame
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default());
+
+                    renderer.render_frame(&render_target);
 
                     frame.present();
                     window.request_redraw();
